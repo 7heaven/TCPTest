@@ -13,7 +13,7 @@ import android.util.Log;
 import android.widget.TextView;
 
 import com.example.tcptest.util.Accelerometer;
-import com.example.tcptest.util.Accelerometer.OnDataChangedListener;
+import com.example.tcptest.util.base.BaseSensor.OnDataChangedListener;
 import com.example.tcptest.view.BallView;
 
 public class MainActivity extends Activity implements OnDataChangedListener{
@@ -48,7 +48,11 @@ public class MainActivity extends Activity implements OnDataChangedListener{
     }
 
 	@Override
-	public void onChange(float x, float y, float z) {
+	public void onChange(float[] values, int accuracy, long timestamp) {
+		float x = values[0];
+		float y = values[1];
+		float z = values[2];
+		
 		ballView.offset(-(int) (x * 10), (int) (y * 10));
 		text.setText("X:" + x + "\n" +
 		             "Y:" + y + "\n" + 
