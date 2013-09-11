@@ -24,6 +24,9 @@ public class MainActivity extends Activity implements OnDataChangedListener{
 	private Accelerometer accelerometer;
 	
 	private int yValue;
+	
+	private Socket socket = null;
+	private boolean establishTCP = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,7 +54,26 @@ public class MainActivity extends Activity implements OnDataChangedListener{
 		             "Y:" + y + "\n" + 
 				     "Z:" + z + "\n");
 		
-		yValue = (int) y * 10;
+		yValue = (int) (y * 25);
+		
+		String outValue = null;
+		if(yValue < 10){
+			outValue = "00" + yValue + "ctlytenexactlyt\n";
+		}else if (yValue < 100){
+			outValue = "0" + yValue + "ctlytenexactlyt\n";
+		}else{
+			outValue = yValue + "ctlytenexactlyt\n";
+		}
+		Log.d("y:", yValue + "");
+		if(establishTCP || socket != null){
+			try{
+				OutputStream out = socket.getOutputStream();
+				byte[] outBytes = outValue.getBytes();
+				out.write(outBytes);
+			}catch(IOException e){
+				e.printStackTrace();
+			}
+		}
 	}
     
 	private void establishTCPLink(){
@@ -59,33 +81,26 @@ public class MainActivity extends Activity implements OnDataChangedListener{
 	    new Thread(){
 	    	@Override
 	    	public void run(){
-	    		Socket socket = null;
 				try {
 					socket = new Socket("192.168.1.120", 1000);
 					String content = null;
 					while(true){
 		    			try {
 							InputStream in = socket.getInputStream();
-							byte[] buff = new byte[52];
+							byte[] buff = new byte[100];
 							
 							if(in != null){
 								int len = in.read(buff);
-								content = new String(buff, 0, len);
+								if(len > 0){
+									content = new String(buff, 0, len);
+								}
 							}else{
 								Log.e("tcp", "inputfailed");
 							}
 							if(content != null){
-								Log.d("tcp", content);
-								OutputStream out = socket.getOutputStream();
-								Log.d("tcp", "write");
-								byte[] outBytes = "exactlytenexactlyten".getBytes();
-								if(outBytes.length == 20){
-									Log.d("tcp", "this should work with 20 bytes");
-									out.write(outBytes);
-								}
+								establishTCP = true;
 							}
 						} catch (IOException e) {
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
 		    			
