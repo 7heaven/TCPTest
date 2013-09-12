@@ -6,16 +6,15 @@ import android.hardware.SensorManager;
 
 import com.example.tcptest.util.base.BaseSensor;
 
-public class Gyroscope extends BaseSensor{
+public class Orientation extends BaseSensor {
 
-	public Gyroscope(Context context) {
+	public Orientation(Context context) {
 		super(context);
 	}
 
 	@Override
 	public boolean start(int type) {
-		sensorType = Sensor.TYPE_GYROSCOPE;
-		return init(sensorType, SensorManager.SENSOR_DELAY_GAME);
+		return init(Sensor.TYPE_ACCELEROMETER, SensorManager.SENSOR_DELAY_GAME) && init(Sensor.TYPE_MAGNETIC_FIELD, SensorManager.SENSOR_DELAY_GAME);
 	}
 
 }

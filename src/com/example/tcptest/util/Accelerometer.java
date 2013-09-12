@@ -23,7 +23,8 @@ public class Accelerometer extends BaseSensor {
 	}
 	
 	public boolean start(int type){
-		return init(Sensor.TYPE_ACCELEROMETER, SensorManager.SENSOR_DELAY_GAME);
+		sensorType = Sensor.TYPE_ACCELEROMETER;
+		return init(sensorType, SensorManager.SENSOR_DELAY_GAME);
 	}
 
 	@Override
@@ -36,9 +37,9 @@ public class Accelerometer extends BaseSensor {
 			gravity[1] = alpha * gravity[1] + (1 - alpha) * event.values[1];
 			gravity[2] = alpha * gravity[2] + (1 - alpha) * event.values[2];
 			
-			onChange(new float[]{event.values[0] - gravity[0],
-					             event.values[1] - gravity[1],
-					             event.values[2] - gravity[2]}, event.accuracy, event.timestamp);
+			onChange(event.sensor, new float[]{event.values[0] - gravity[0],
+					                           event.values[1] - gravity[1],
+					                           event.values[2] - gravity[2]}, event.accuracy, event.timestamp);
 			break;
 		case TYPE_GRAVITY:
 			super.onSensorChanged(event);

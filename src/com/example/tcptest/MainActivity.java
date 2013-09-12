@@ -6,6 +6,8 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+import android.hardware.Sensor;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.app.Activity;
@@ -13,6 +15,7 @@ import android.util.Log;
 import android.widget.TextView;
 
 import com.example.tcptest.util.Accelerometer;
+import com.example.tcptest.util.Orientation;
 import com.example.tcptest.util.base.BaseSensor.OnDataChangedListener;
 import com.example.tcptest.view.BallView;
 
@@ -23,10 +26,14 @@ public class MainActivity extends Activity implements OnDataChangedListener{
 	
 	private Accelerometer accelerometer;
 	
+	private int xValue;
 	private int yValue;
+	private int zValue;
 	
 	private Socket socket = null;
 	private boolean establishTCP = false;
+	
+	private static final String tail = "xxxyyyzzz\n";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,29 +53,67 @@ public class MainActivity extends Activity implements OnDataChangedListener{
         
         establishTCPLink();
     }
+    
+    @Override
+    public void onChange(Sensor sensor, float[] values, int accuracy, long timestamp){
+    	
+    	ballView.offset(-(int) (values[0] * 10), (int) (values[1] * 10));
+		text.setText("X:" + values[0] + "\n" +
+		             "Y:" + values[1] + "\n" + 
+				     "Z:" + values[2] + "\n");
+    	
+    	String xOutValue = getProperString((int) (values[0] * 25));
+    	String yOutValue = getProperString((int) (values[1] * 25));
+    	String zOutValue = getProperString((int) (values[2] * 25));
+    	
+    	String outValue = xOutValue + yOutValue + zOutValue + tail;
+    	if(establishTCP || socket != null){
+			try{
+				OutputStream out = socket.getOutputStream();
+				byte[] outBytes = outValue.getBytes();
+				out.write(outBytes);
+			}catch(IOException e){
+				e.printStackTrace();
+			}
+		}
+    }
 
+	/*
 	@Override
-	public void onChange(float[] values, int accuracy, long timestamp) {
-		float x = values[0];
-		float y = values[1];
-		float z = values[2];
+	public void onChange(Sensor sensor, float[] values, int accuracy, long timestamp) {
+		if(sensor.getType() == Sensor.TYPE_ACCELEROMETER){
+			System.arraycopy(values, 0, lastAccelerometer, 0, values.length);
+			lastAccelerometerSet = true;
+		}else if(sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD){
+			System.arraycopy(values, 0, lastMagnetometer, 0, values.length);
+			lastMagnetometerSet = true;
+		}
+		
+		float x = 0;
+		float y = 0;
+		float z = 0;
+		
+		if(lastAccelerometerSet && lastMagnetometerSet){
+			SensorManager.getRotationMatrix(mR, null, lastAccelerometer, lastMagnetometer);
+			SensorManager.getOrientation(mR, mOrientation);
+			x = mOrientation[0];
+			y = mOrientation[1];
+			z = mOrientation[2];
+		}
 		
 		ballView.offset(-(int) (x * 10), (int) (y * 10));
 		text.setText("X:" + x + "\n" +
 		             "Y:" + y + "\n" + 
 				     "Z:" + z + "\n");
 		
+		xValue = (int) (x * 25);
 		yValue = (int) (y * 25);
+		zValue = (int) (z * 25);
 		
-		String outValue = null;
-		if(yValue < 10){
-			outValue = "00" + yValue + "ctlytenexactlyt\n";
-		}else if (yValue < 100){
-			outValue = "0" + yValue + "ctlytenexactlyt\n";
-		}else{
-			outValue = yValue + "ctlytenexactlyt\n";
-		}
-		Log.d("y:", yValue + "");
+		String xOutValue = getProperString(xValue);
+		String yOutValue = getProperString(yValue);
+		String zOutValue = getProperString(zValue);
+		String outValue = xOutValue + yOutValue + zOutValue + tail;
 		if(establishTCP || socket != null){
 			try{
 				OutputStream out = socket.getOutputStream();
@@ -78,6 +123,22 @@ public class MainActivity extends Activity implements OnDataChangedListener{
 				e.printStackTrace();
 			}
 		}
+	}
+	 */
+	
+	private String getProperString(int value){
+		String result = null;
+		if(value > 0){
+			if(value < 10){
+				result = "00" + value;
+			}else if(value < 100){
+				result = "0" + value;
+			}else{
+				result = value + "";
+			}
+		}
+		
+		return result;
 	}
     
 	private void establishTCPLink(){

@@ -13,11 +13,12 @@ public abstract class BaseSensor implements SensorEventListener {
 	
 	protected Context mContext;
 	protected SensorManager mSensorManager;
+	protected int sensorType;
 	
 	protected OnDataChangedListener mOnDataChangedListener;
 	
 	public interface OnDataChangedListener{
-		public void onChange(float[] values, int accuracy, long timestamp);
+		public void onChange(Sensor sensor, float[] values, int accuracy, long timestamp);
 	}
 	
 	public BaseSensor(Context context){
@@ -58,15 +59,15 @@ public abstract class BaseSensor implements SensorEventListener {
 		return true;
 	}
 	
-	protected void onChange(float[] values, int accuracy, long timestamp){
+	protected void onChange(Sensor sensor, float[] values, int accuracy, long timestamp){
 		if(null != mOnDataChangedListener){
-			mOnDataChangedListener.onChange(values, accuracy, timestamp);
+			mOnDataChangedListener.onChange(sensor, values, accuracy, timestamp);
 		}
 	}
 
 	@Override
 	public void onSensorChanged(SensorEvent event) {
-		onChange(event.values, event.accuracy, event.timestamp);
+		onChange(event.sensor, event.values, event.accuracy, event.timestamp);
 	}
 
 	@Override
